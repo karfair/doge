@@ -1,9 +1,11 @@
 package com.example.ece381;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.sql.Timestamp;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -19,7 +21,62 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	private boolean ack = true;
+	//stuff I wrote
+	//speed test and latency test
+	public void speedTest(View view){
+		
+		final int BYTES_TO_SEND = 30;
+		final int ITERATIONS = 2000;
+		
+		MyApplication app = (MyApplication) getApplication();
+		
+		//fake data to send
+		byte buf[] = new byte[BYTES_TO_SEND];
+
+		//stream data
+		OutputStream out;
+		InputStream in;
+		BufferedInputStream bis;
+		
+		
+		try {
+			//init
+			out = app.sock.getOutputStream();
+			in = app.sock.getInputStream();
+			bis = new BufferedInputStream(in);
+
+			long latS;
+			long latE;
+			long startTime = System.nanoTime();
+			
+			for(int i = 0; i < ITERATIONS; i++){
+				latS = System.nanoTime();
+				//write fake message
+				out.write(buf, 0, BYTES_TO_SEND);
+				
+				//wait for an ack
+				while(in.available() == 0);
+
+				//read in ack
+				buf[0] = (byte) bis.read();
+
+				
+				latE = System.nanoTime();
+				Log.i("MainActivity", "latency is: " + String.valueOf((latE-latS)/1000000) + "mS" + " IT: " + String.valueOf(i));
+				//is this an ack????
+				assert(buf[0] == 0);
+			}
+			
+			long endTime = System.nanoTime();
+			
+			double speed = ((double)BYTES_TO_SEND*ITERATIONS)/(((double)(endTime-startTime)))*1000000000;
+			
+			Log.i("MainActivity", "speed is: " + String.valueOf(speed) + "Bps");
+			Log.i("MainActivity", "speed is: " + String.valueOf(8*speed) + "bps");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -76,7 +133,10 @@ public class MainActivity extends Activity {
 	//  Called when the user wants to send a message
 	
 	public void sendMessage(View view) {
+		
 		MyApplication app = (MyApplication) getApplication();
+		
+		if(!app.ack) return;
 		
 		// Get the message from the box
 		
@@ -91,27 +151,27 @@ public class MainActivity extends Activity {
 		System.arraycopy(msg.getBytes(), 0, buf, 0, msg.length());
 
 		// Now send through the output stream of the socket
-		if(ack){
-			OutputStream out;
+		OutputStream out;
+		try {
+			out = app.sock.getOutputStream();
 			try {
-				out = app.sock.getOutputStream();
-				try {
-					out.write(buf, 0, msg.length());
-					ack = false;
-					Log.i("ack","false");
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				out.write(buf, 0, msg.length());
+				app.ack = false;
+				Log.i("ack","false");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+		
 	}
 
 	// Called when the user closes a socket
 	
 	public void closeSocket(View view) {
 		MyApplication app = (MyApplication) getApplication();
+		app.ack = true;
 		Socket s = app.sock;
 		try {
 			s.getOutputStream().close();
@@ -205,7 +265,7 @@ public class MainActivity extends Activity {
 						
 						//if this was an ack message
 						if(msg_len[0] == 0) {
-							ack = true;
+							app.ack = true;
 							Log.i("ack","true");
 							if(in.available() == 0)
 								return;

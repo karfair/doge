@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:inputType="number"
-            android:text="1" />
+            android:text="0" />
 
         <EditText
             android:id="@+id/ip4"
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:inputType="number"
-            android:text="100" />
+            android:text="61" />
 
     </LinearLayout>
 
@@ -72,23 +72,39 @@
 
     </LinearLayout>
 
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:onClick="openSocket"
-        android:text="@string/connect" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="openSocket"
+            android:text="@string/connect" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="sendMessage"
+            android:text="Send Msg" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:onClick="closeSocket"
+            android:text="Disconnect" />
+
+    </LinearLayout>
 
     <Button
-        android:layout_width="fill_parent"
+        android:id="@+id/button1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="sendMessage"
-        android:text="Send Message" />
-
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:onClick="closeSocket"
-        android:text="Disconnect" />
+        android:onClick="speedTest"
+        android:text="SpeedTest" />
 
     <TextView
         android:layout_width="fill_parent"

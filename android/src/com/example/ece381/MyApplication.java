@@ -6,4 +6,5 @@ import android.app.Application;
 
 public class MyApplication extends Application {
 	Socket sock = null;
+	boolean ack = true;
 }

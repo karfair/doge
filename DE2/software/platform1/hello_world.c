@@ -18,14 +18,17 @@ int main()
 		}
 
 		while(1){
-			printf("waiting for message from android device\n");
+			//printf("waiting for message from android device\n");
 			//need to wait for at least 2 bytes
 			//first is the ID, second is the amount of bytes
 			while (alt_up_rs232_get_used_space_in_read_FIFO(uart) < 2);
 
 			// First byte is the number of characters in our message
 			alt_up_rs232_read_data(uart, &data, &parity);
-			printf("receive from id: %i\n", (unsigned int)data);
+			//printf("receive from id: %i\n", (unsigned int)data);
+
+			unsigned char id = data;
+
 			alt_up_rs232_read_data(uart, &data, &parity);
 			int num_to_receive = (int)data;
 
@@ -34,7 +37,7 @@ int main()
 
 			//receiveing data
 			unsigned char buffer[128];
-			printf("About to receive %d characters:\n", num_to_receive);
+			//printf("About to receive %d characters:\n", num_to_receive);
 
 			for (i = 0; i < num_to_receive; i++) {
 				while (alt_up_rs232_get_used_space_in_read_FIFO(uart) == 0)
@@ -42,18 +45,19 @@ int main()
 				alt_up_rs232_read_data(uart, &data, &parity);
 
 				buffer[i] = data;
-				printf("%c",buffer[i]);
+				//printf("%c",buffer[i]);
 			}
-			printf("\n");
+			//printf("\n");
 
 			//sends an ack
-			alt_up_rs232_write_data(uart, 0xFF); //echo to all
+			alt_up_rs232_write_data(uart, id); //echo to all
 			alt_up_rs232_write_data(uart, 1);//middleman discards this
 			alt_up_rs232_write_data(uart, 0);
 
+			/*
 			// Start with the number of bytes in our message
 			//sending data
-			alt_up_rs232_write_data(uart, 0xFF); //echo to all
+			alt_up_rs232_write_data(uart, id); //echo to all
 			alt_up_rs232_write_data(uart, (unsigned char) num_to_receive+1);//middleman discards this
 			alt_up_rs232_write_data(uart, (unsigned char) num_to_receive);
 
@@ -65,7 +69,7 @@ int main()
 
 
 			printf("\n");
-			printf("Message Echo Complete\n");
+			printf("Message Echo Complete\n");*/
 		}
         return 0;
 }
