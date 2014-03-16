@@ -91,20 +91,14 @@
             android:text="Send Msg" />
 
         <Button
+            android:id="@+id/button1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:onClick="closeSocket"
-            android:text="Disconnect" />
+            android:onClick="speedTest"
+            android:text="SpeedTest" />
 
     </LinearLayout>
-
-    <Button
-        android:id="@+id/button1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="speedTest"
-        android:text="SpeedTest" />
 
     <TextView
         android:layout_width="fill_parent"
