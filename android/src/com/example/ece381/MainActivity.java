@@ -1,5 +1,4 @@
 package com.example.ece381;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,14 +35,12 @@ public class MainActivity extends Activity {
 		//stream data
 		OutputStream out;
 		InputStream in;
-		BufferedInputStream bis;
 		
 		
 		try {
 			//init
 			out = app.sock.getOutputStream();
 			in = app.sock.getInputStream();
-			bis = new BufferedInputStream(in);
 
 			long latS;
 			long latE;
@@ -51,16 +48,13 @@ public class MainActivity extends Activity {
 			
 			for(int i = 0; i < ITERATIONS; i++){
 				latS = System.nanoTime();
+				
 				//write fake message
 				out.write(buf, 0, BYTES_TO_SEND);
 				
-				//wait for an ack
-				while(in.available() == 0);
-
 				//read in ack
-				buf[0] = (byte) bis.read();
+				buf[0] = (byte) in.read();
 
-				
 				latE = System.nanoTime();
 				Log.i("MainActivity", "latency is: " + String.valueOf((latE-latS)/1000000) + "mS" + " IT: " + String.valueOf(i));
 				//is this an ack????
@@ -96,12 +90,16 @@ public class MainActivity extends Activity {
 		et = (EditText) findViewById(R.id.error_message_box);
 		et.setKeyListener(null);
 
+		Thread TCP_read = new TCPReadThread();
+		TCP_read.start();
+		
+		
 		// Set up a timer task.  We will use the timer to check the
 		// input queue every 500 ms
 		
-		TCPReadTimerTask tcp_task = new TCPReadTimerTask();
-		Timer tcp_timer = new Timer();
-		tcp_timer.schedule(tcp_task, 3000, 500);
+		//TCPReadTimerTask tcp_task = new TCPReadTimerTask();
+		//Timer tcp_timer = new Timer();
+		//tcp_timer.schedule(tcp_task, 3000, 500);
 	}
 
 	@Override
@@ -146,16 +144,16 @@ public class MainActivity extends Activity {
 		// Create an array of bytes.  First byte will be the
 		// message length, and the next ones will be the message
 		
-		byte buf[] = new byte[msg.length()];
-		//buf[0] = (byte) msg.length(); 
-		System.arraycopy(msg.getBytes(), 0, buf, 0, msg.length());
+		byte buf[] = new byte[msg.length()+1];
+		buf[0] = 1; //data type 1
+		System.arraycopy(msg.getBytes(), 0, buf, 1, msg.length());
 
 		// Now send through the output stream of the socket
 		OutputStream out;
 		try {
 			out = app.sock.getOutputStream();
 			try {
-				out.write(buf, 0, msg.length());
+				out.write(buf, 0, msg.length()+1);
 				app.ack = false;
 				Log.i("ack","false");
 			} catch (IOException e) {
@@ -249,61 +247,63 @@ public class MainActivity extends Activity {
 	// This is a timer Task.  Be sure to work through the tutorials
 	// on Timer Tasks before trying to understand this code.
 	
-	public class TCPReadTimerTask extends TimerTask {
+	public class TCPReadThread extends Thread {
+		//data
+		private byte buffer[] = new byte[256];
+		private byte dataType;
+		private int size;
+		
+		@Override
 		public void run() {
 			MyApplication app = (MyApplication) getApplication();
-			if (app.sock != null && app.sock.isConnected() && !app.sock.isClosed()) {
+			while(!(app.sock != null && app.sock.isConnected() && !app.sock.isClosed()));
 				
-				try {
-					InputStream in = app.sock.getInputStream();
+			try {
+				InputStream in = app.sock.getInputStream();
 
+
+				while(true) {
 					// See if any bytes are available from the Middleman
-					if(in.available() > 0){
-						//read in how many bytes of data we should wait for
-						byte msg_len[] = new byte[1];
-						in.read(msg_len,0,1);
+					size = (byte) in.read();
+					if(size == 0) {
+						app.ack = true;
+						Log.i("ack","true");
+					} else{
+						dataType = (byte) in.read();
 						
-						//if this was an ack message
-						if(msg_len[0] == 0) {
-							app.ack = true;
-							Log.i("ack","true");
-							if(in.available() == 0)
-								return;
-							else
-								in.read(msg_len,0,1);
+						int amount = in.read(buffer,0,size-1);
+						Log.i("COMM", "Data Received -> Expected: " + String.valueOf(size-1) + " Got: " + String.valueOf(amount));
+						//read the rest of the data if it wasn't read in properly
+						if(amount < size-1) {
+							for(int i = amount; i < size; i++) {
+								buffer[i] = (byte)in.read();
+							}
 						}
 						
-						//storage buffer
-						byte buf[] = new byte[msg_len[0]];
-						
-						
-
-						//has the transmission completed?
-						//if not, wait in this loop
-						while(in.available() != msg_len[0]);
-						
-						//read the data
-						in.read(buf);
-						
-						// If so, read them in and create a sring
-						final String s = new String(buf, 0, msg_len[0], "US-ASCII");
-		
-						// As explained in the tutorials, the GUI can not be
-						// updated in an asyncrhonous task.  So, update the GUI
-						// using the UI thread.
-						
-						runOnUiThread(new Runnable() {
-							public void run() {
-								EditText et = (EditText) findViewById(R.id.RecvdMessage);
-								et.setText(s);
-							}
-						});
-							
-						
+						switch(dataType){
+							case 0:
+								//speedtest
+								//do nothing
+								break;
+							case 1:
+								// If so, read them in and create a sring
+								final String s = new String(buffer, 0, size-1, "US-ASCII");
+				
+								// As explained in the tutorials, the GUI can not be
+								// updated in an asyncrhonous task.  So, update the GUI
+								// using the UI thread.
+								runOnUiThread(new Runnable() {
+									public void run() {
+										EditText et = (EditText) findViewById(R.id.RecvdMessage);
+										et.setText(s);
+									}
+								});
+								break;
+						}
 					}
-				} catch (IOException e) {
-					e.printStackTrace();
 				}
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
