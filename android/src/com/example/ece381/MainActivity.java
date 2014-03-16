@@ -8,6 +8,9 @@ import java.sql.Timestamp;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.example.ece381.MyApplication.TcpData;
+import com.example.ece381.MyActivity;
+
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -18,14 +21,14 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends MyActivity {
 
 	//stuff I wrote
 	//speed test and latency test
 	public void speedTest(View view){
 		
 		final int BYTES_TO_SEND = 30;
-		final int ITERATIONS = 2000;
+		final int ITERATIONS = 200;
 		
 		MyApplication app = (MyApplication) getApplication();
 		
@@ -34,13 +37,11 @@ public class MainActivity extends Activity {
 
 		//stream data
 		OutputStream out;
-		InputStream in;
 		
 		
 		try {
 			//init
 			out = app.sock.getOutputStream();
-			in = app.sock.getInputStream();
 
 			long latS;
 			long latE;
@@ -50,10 +51,10 @@ public class MainActivity extends Activity {
 				latS = System.nanoTime();
 				
 				//write fake message
+				app.ack = false;
 				out.write(buf, 0, BYTES_TO_SEND);
 				
-				//read in ack
-				buf[0] = (byte) in.read();
+				while(app.ack==false);
 
 				latE = System.nanoTime();
 				Log.i("MainActivity", "latency is: " + String.valueOf((latE-latS)/1000000) + "mS" + " IT: " + String.valueOf(i));
@@ -90,16 +91,7 @@ public class MainActivity extends Activity {
 		et = (EditText) findViewById(R.id.error_message_box);
 		et.setKeyListener(null);
 
-		Thread TCP_read = new TCPReadThread();
-		TCP_read.start();
-		
-		
-		// Set up a timer task.  We will use the timer to check the
-		// input queue every 500 ms
-		
-		//TCPReadTimerTask tcp_task = new TCPReadTimerTask();
-		//Timer tcp_timer = new Timer();
-		//tcp_timer.schedule(tcp_task, 3000, 500);
+
 	}
 
 	@Override
@@ -115,6 +107,7 @@ public class MainActivity extends Activity {
 		TextView msgbox = (TextView) findViewById(R.id.error_message_box);
 
 		// Make sure the socket is not already opened 
+		app.ack = true;
 		
 		if (app.sock != null && app.sock.isConnected() && !app.sock.isClosed()) {
 			msgbox.setText("Socket already open");
@@ -165,19 +158,7 @@ public class MainActivity extends Activity {
 		
 	}
 
-	// Called when the user closes a socket
-	
-	public void closeSocket(View view) {
-		MyApplication app = (MyApplication) getApplication();
-		app.ack = true;
-		Socket s = app.sock;
-		try {
-			s.getOutputStream().close();
-			s.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+
 
 	// Construct an IP address from the four boxes
 	
@@ -244,67 +225,30 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	// This is a timer Task.  Be sure to work through the tutorials
-	// on Timer Tasks before trying to understand this code.
 	
-	public class TCPReadThread extends Thread {
-		//data
-		private byte buffer[] = new byte[256];
-		private byte dataType;
-		private int size;
-		
-		@Override
-		public void run() {
-			MyApplication app = (MyApplication) getApplication();
-			while(!(app.sock != null && app.sock.isConnected() && !app.sock.isClosed()));
-				
-			try {
-				InputStream in = app.sock.getInputStream();
-
-
-				while(true) {
-					// See if any bytes are available from the Middleman
-					size = (byte) in.read();
-					if(size == 0) {
-						app.ack = true;
-						Log.i("ack","true");
-					} else{
-						dataType = (byte) in.read();
-						
-						int amount = in.read(buffer,0,size-1);
-						Log.i("COMM", "Data Received -> Expected: " + String.valueOf(size-1) + " Got: " + String.valueOf(amount));
-						//read the rest of the data if it wasn't read in properly
-						if(amount < size-1) {
-							for(int i = amount; i < size; i++) {
-								buffer[i] = (byte)in.read();
-							}
-						}
-						
-						switch(dataType){
-							case 0:
-								//speedtest
-								//do nothing
-								break;
-							case 1:
-								// If so, read them in and create a sring
-								final String s = new String(buffer, 0, size-1, "US-ASCII");
-				
-								// As explained in the tutorials, the GUI can not be
-								// updated in an asyncrhonous task.  So, update the GUI
-								// using the UI thread.
-								runOnUiThread(new Runnable() {
-									public void run() {
-										EditText et = (EditText) findViewById(R.id.RecvdMessage);
-										et.setText(s);
-									}
-								});
-								break;
-						}
+	public void handlesTCPData(TcpData d) {
+		switch(d.dataType){
+		case 0:
+			//speedtest
+			//do nothing
+			break;
+		case 1:
+			try{
+				// If so, read them in and create a sring
+				final String s = new String(d.data, 0, d.data.length, "US-ASCII");
+	
+				// As explained in the tutorials, the GUI can not be
+				// updated in an asyncrhonous task.  So, update the GUI
+				// using the UI thread.
+				runOnUiThread(new Runnable() {
+					public void run() {
+						EditText et = (EditText) findViewById(R.id.RecvdMessage);
+						et.setText(s);
 					}
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+				});
+			}catch(Exception E){}
+			break;
+	}
+		
 	}
 }
