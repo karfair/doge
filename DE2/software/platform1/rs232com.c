@@ -21,9 +21,10 @@ int Start, End;
 
 void uart_isr() {
 	//receiving data
-	IOWR_16DIRECT(TIMER_0_BASE,0,0); //needed to show that interrupt finished executing
 
-	unsigned char i, parity;
+
+	unsigned char parity;
+	int start, end, queue_size, amount_to_send,FIFO_avail;
 
 	while(alt_up_rs232_get_used_space_in_read_FIFO(uart) > 0) {
 		if(!hasReadHeader) {
@@ -37,20 +38,27 @@ void uart_isr() {
 
 				hasReadHeader = true;
 				size--; //remaining data
+				//printf("0:id: %i size: %i datatype: %i \n", id,size,dataType);
 			}else {
-				break;
+				goto Send;
 			}
 		}
-		printf("1");
-		//wait for all the data to arrive
-		if(alt_up_rs232_get_used_space_in_read_FIFO(uart) < size ) {
-			break;
-		}
-		printf("2");
-		//receiving data into buffer
-		for (i = 0; i < size; i++) {
-			alt_up_rs232_read_data(uart, buffer+i, &parity);
-			printf("%c",buffer[i]);
+		if(size > 0) {
+			//printf("1: space_avail: %i, size: %i\n",alt_up_rs232_get_used_space_in_read_FIFO(uart),size);
+			//wait for all the data to arrive
+
+			if(alt_up_rs232_get_used_space_in_read_FIFO(uart) < size ) {
+				printf("1");
+				goto Send;
+			}
+			//printf("2:id: %i size: %i datatype: %i \n", id,size,dataType);
+			//receiving data into buffer
+			unsigned i;
+			for (i = 0; i < size; i++) {
+				alt_up_rs232_read_data(uart, buffer+i, &parity);
+				//printf("%c",buffer[i]);
+			}
+			//printf("\n");
 		}
 
 		//turn off hasReadHeader
@@ -58,7 +66,9 @@ void uart_isr() {
 
 		//send ack
 		if(!send_ack(id)){
-			printf("ack not sent to id:%i! prepared to die...\n", (int)id);
+			//printf("ack not sent to id:%i! prepared to die...\n", (int)id);
+		}else{
+			//printf("ack to ID: %i\n",id);
 		}
 
 		//TODO: Modify stuff here to do different things for different data type
@@ -72,28 +82,34 @@ void uart_isr() {
 		}
 	}
 
+	Send:
+
 	//sending data
 
 	//create a copy of the global variables
-	int start = Start;
-	int end = End;
+	start = Start;
+	end = End;
 
-	int queue_size = start < end ? end - start : end + BUFFER_SIZE - start; //how much is there to send
+	queue_size = start < end ? end - start : end + BUFFER_SIZE - start; //how much is there to send
 	queue_size--; //start != end
-	int FIFO_avail = alt_up_rs232_get_available_space_in_write_FIFO(uart); //how much can we send?
-	int amount_to_send = FIFO_avail > queue_size ? queue_size : FIFO_avail; //send the lower amount
+	FIFO_avail = alt_up_rs232_get_available_space_in_write_FIFO(uart); //how much can we send?
+	amount_to_send = FIFO_avail > queue_size ? queue_size : FIFO_avail; //send the lower amount
 
-	//printf("transmit\n");
-	for(i = 0; i < amount_to_send; i++) {
-		start++;
-		if(start == BUFFER_SIZE) start = 0;
-		alt_up_rs232_write_data(uart, send[start]); //sends the actual data
-		printf("\n%c,%X,%i",send[start],send[start],send[start]);
+	if(amount_to_send > 0){
+		//printf("transmit:  %i bytes\n\n\n",amount_to_send);
+		int i;
+		for(i = 0; i < amount_to_send; i++) {
+			start++;
+			if(start == BUFFER_SIZE) start = 0;
+			alt_up_rs232_write_data(uart, send[start]); //sends the actual data
+			//printf("\n%c,%X,%i",send[start],send[start],send[start]);
+
+			Start = start; //sets the global
+		}
 	}
-	//printf("\n");
 
-	Start = start; //sets the global
 
+	IOWR_16DIRECT(TIMER_0_BASE,0,0); //needed to show that interrupt finished executing
 	IOWR_16DIRECT(TIMER_0_BASE,4,0x5); //restarts timer
 	return;
 }
@@ -213,11 +229,11 @@ int main()
 	while(1){
 		i++;
 		if(i % 5000000 == 0){
-			printf("content:");
+			//printf("content:");
 			int j;
-			for(j=0;j<50;j++)
-				printf("%c",buffer[j]);
-			printf(" id: %i size: %i datatype: %i start: %i end: %i\n", id,size,dataType,Start,End);
+			//for(j=0;j<50;j++)
+			//	printf("%c",buffer[j]);
+			//printf("\n id: %i size: %i datatype: %i start: %i end: %i\n", id,size,dataType,Start,End);
 		}
 	}
 	return 0;
