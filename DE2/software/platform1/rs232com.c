@@ -99,9 +99,11 @@ void uart_isr() {
 		//printf("transmit:  %i bytes\n\n\n",amount_to_send);
 		int i;
 		for(i = 0; i < amount_to_send; i++) {
-			start++;
-			if(start == BUFFER_SIZE) start = 0;
-			alt_up_rs232_write_data(uart, send[start]); //sends the actual data
+			if(alt_up_rs232_get_used_space_in_read_FIFO(uart)==0){
+				start++;
+				if(start == BUFFER_SIZE) start = 0;
+				alt_up_rs232_write_data(uart, send[start]); //sends the actual data
+			}else break;
 			//printf("\n%c,%X,%i",send[start],send[start],send[start]);
 
 			Start = start; //sets the global
