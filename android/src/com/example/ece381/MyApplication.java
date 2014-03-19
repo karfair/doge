@@ -2,6 +2,7 @@ package com.example.ece381;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 
 import android.app.Application;
@@ -18,7 +19,12 @@ public class MyApplication extends Application {
 	MyActivity currentActivity;
 	//TextView currentTextView;
 	
+	
+	//lock for currentActivity
 	Object lock = new Object();
+	
+	//ack_lock
+	Object ack_lock = new Object();
 	
 	@Override
 	public void onCreate(){
@@ -27,7 +33,33 @@ public class MyApplication extends Application {
 		tcp_read.start();
 	}
 	
-	public class TcpData {
+	public synchronized boolean sendData(TcpData d){
+		// Now send through the output stream of the socket
+		if(!ack){
+			return false;
+		}else{
+			ack = false;
+			Log.i("COMM","ack = false");
+		}
+		
+		byte buffer[] = new byte[d.data.length+1];
+		buffer[0] = d.dataType;
+		System.arraycopy(d.data, 0, buffer, 1, d.data.length);
+		
+		OutputStream out;
+		try {
+			out = sock.getOutputStream();
+			out.write(buffer, 0, d.data.length+1);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+			Log.i("COMM", "sendData() error");
+		}
+		
+		return true;
+	}
+	
+	public static class TcpData {
 		public byte dataType;
 		public byte data[];
 	}
@@ -52,7 +84,12 @@ public class MyApplication extends Application {
 					size = (byte) in.read();
 					if(size == 0) {
 						ack = true;
-						Log.i("ack","true");
+						synchronized(lock) {
+							if(currentActivity != null) {
+								currentActivity.handlesAck();
+							}
+						}
+						Log.i("COMM","ack = true");
 					} else{
 						dataType = (byte) in.read();
 						size--;

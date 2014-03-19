@@ -127,35 +127,17 @@ public class MainActivity extends MyActivity {
 		
 		MyApplication app = (MyApplication) getApplication();
 		
-		if(!app.ack) return;
-		
 		// Get the message from the box
-		
 		EditText et = (EditText) findViewById(R.id.MessageText);
 		String msg = et.getText().toString();
 
 		// Create an array of bytes.  First byte will be the
 		// message length, and the next ones will be the message
+		TcpData d = new TcpData();
+		d.data = msg.getBytes();
+		d.dataType = 1;
 		
-		byte buf[] = new byte[msg.length()+1];
-		buf[0] = 1; //data type 1
-		System.arraycopy(msg.getBytes(), 0, buf, 1, msg.length());
-
-		// Now send through the output stream of the socket
-		OutputStream out;
-		try {
-			out = app.sock.getOutputStream();
-			try {
-				out.write(buf, 0, msg.length()+1);
-				app.ack = false;
-				Log.i("ack","false");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+		app.sendData(d);
 	}
 
 
@@ -248,7 +230,12 @@ public class MainActivity extends MyActivity {
 				});
 			}catch(Exception E){}
 			break;
-	}
+		}
 		
+	}
+
+	@Override
+	public void handlesAck() {
+		// do nothing
 	}
 }

@@ -6,6 +6,7 @@ import android.app.Activity;
 
 public abstract class MyActivity extends Activity {
 	public abstract void handlesTCPData(TcpData d);
+	public abstract void handlesAck();
 	
 	@Override
 	public void onResume(){
