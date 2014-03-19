@@ -95,22 +95,30 @@ void uart_isr() {
 	FIFO_avail = alt_up_rs232_get_available_space_in_write_FIFO(uart); //how much can we send?
 	amount_to_send = FIFO_avail > queue_size ? queue_size : FIFO_avail; //send the lower amount
 
+	const unsigned int BASE_addr = uart->base;
+	const unsigned int RAVAIL = uart->base + 2;
+
 	if(amount_to_send > 0){
 		//printf("transmit:  %i bytes\n\n\n",amount_to_send);
 		int i;
 		for(i = 0; i < amount_to_send; i++) {
-			if(alt_up_rs232_get_used_space_in_read_FIFO(uart)==0){
-				start++;
-				if(start == BUFFER_SIZE) start = 0;
-				alt_up_rs232_write_data(uart, send[start]); //sends the actual data
-			}else break;
+			int temp_start = start;
+			start++;
+			if(start == BUFFER_SIZE) start = 0;
+			unsigned char temp_data = send[start];
+
+			if(IORD_8DIRECT(RAVAIL,0)==0){
+				IOWR_8DIRECT(BASE_addr,0,temp_data); //sends the actual data
+			}else{ //revert changes if send not successful
+				start = temp_start;
+				break;
+			}
 			//printf("\n%c,%X,%i",send[start],send[start],send[start]);
 
-			Start = start; //sets the global
 		}
 	}
 
-
+	Start = start; //sets the global
 	IOWR_16DIRECT(TIMER_0_BASE,0,0); //needed to show that interrupt finished executing
 	IOWR_16DIRECT(TIMER_0_BASE,4,0x5); //restarts timer
 	return;
