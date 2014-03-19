@@ -8,6 +8,8 @@ import java.sql.Timestamp;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.content.Intent;
+import android.widget.Toast;
 import com.example.ece381.MyApplication.TcpData;
 import com.example.ece381.MyActivity;
 
@@ -21,11 +23,11 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class MainActivity extends MyActivity {
+public class MainActivity extends Activity {
 
 	//stuff I wrote
 	//speed test and latency test
-	public void speedTest(View view){
+	/*public void speedTest(View view){
 		
 		final int BYTES_TO_SEND = 30;
 		final int ITERATIONS = 200;
@@ -59,7 +61,7 @@ public class MainActivity extends MyActivity {
 				latE = System.nanoTime();
 				Log.i("MainActivity", "latency is: " + String.valueOf((latE-latS)/1000000) + "mS" + " IT: " + String.valueOf(i));
 				//is this an ack????
-				assert(buf[0] == 0);
+				//assert(buf[0] == 0);
 			}
 			
 			long endTime = System.nanoTime();
@@ -71,8 +73,9 @@ public class MainActivity extends MyActivity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
+	}*/
+	private byte name_buff[];
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		
@@ -86,11 +89,11 @@ public class MainActivity extends MyActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		EditText et = (EditText) findViewById(R.id.RecvdMessage);
+		/*EditText et = (EditText) findViewById(R.id.RecvdMessage);
 		et.setKeyListener(null);
 		et = (EditText) findViewById(R.id.error_message_box);
 		et.setKeyListener(null);
-
+*/
 
 	}
 
@@ -104,13 +107,26 @@ public class MainActivity extends MyActivity {
 	
 	public void openSocket(View view) {
 		MyApplication app = (MyApplication) getApplication();
-		TextView msgbox = (TextView) findViewById(R.id.error_message_box);
+
+		//If no name is inputted in the name field, the program will notify the user and will return.
+		EditText nameText = (EditText) findViewById(R.id.NameText);
+		String name = nameText.getText().toString();
+		if(name == ""){
+			Toast t = Toast.makeText(this,"Enter a Name",Toast.LENGTH_LONG);
+			t.show();
+			return;
+		}
+		//Copy name into a buffer
+		name_buff = new byte[name.length()+1];
+		name_buff[0]= 1;
+		System.arraycopy(name.getBytes(),0,name_buff,1,name.length());
 
 		// Make sure the socket is not already opened 
 		app.ack = true;
 		
 		if (app.sock != null && app.sock.isConnected() && !app.sock.isClosed()) {
-			msgbox.setText("Socket already open");
+			Toast t = Toast.makeText(this,"Socket is already open",Toast.LENGTH_LONG);
+			t.show();
 			return;
 		}
 		
@@ -119,11 +135,17 @@ public class MainActivity extends MyActivity {
 		// and executes the code in it.
 		
 		new SocketConnect().execute((Void) null);
+
+
+		//New intent to start bombGame
+		Intent intent = new Intent();
+		startActivity(intent);
+
 	}
 
 	//  Called when the user wants to send a message
 	
-	public void sendMessage(View view) {
+	/*public void sendMessage(View view) {
 		
 		MyApplication app = (MyApplication) getApplication();
 		
@@ -156,7 +178,7 @@ public class MainActivity extends MyActivity {
 			e.printStackTrace();
 		}
 		
-	}
+	}*/
 
 
 
@@ -198,7 +220,7 @@ public class MainActivity extends MyActivity {
 
 		// The main parcel of work for this thread.  Opens a socket
 		// to connect to the specified IP.
-		
+
 		protected Socket doInBackground(Void... voids) {
 			Socket s = null;
 			String ip = getConnectToIP();
@@ -219,14 +241,28 @@ public class MainActivity extends MyActivity {
 		// the socket in this app's persistent storage
 		
 		protected void onPostExecute(Socket s) {
-			MyApplication myApp = (MyApplication) MainActivity.this
-					.getApplication();
-			myApp.sock = s;
+			MyApplication app = (MyApplication) MainActivity.this.getApplication();
+			app.sock = s;
+
+			OutputStream out;
+			try{
+				out = app.sock.getOutputStream();
+				try{
+					app.ack= false;
+					out.write(name_buff,0,name_buff.length);
+
+				}catch (IOException e){
+					e.printStackTrace();
+				}
+			}catch (IOException e){
+				e.printStackTrace();
+			}
+
 		}
 	}
 
 	
-	public void handlesTCPData(TcpData d) {
+	/*public void handlesTCPData(TcpData d) {
 		switch(d.dataType){
 		case 0:
 			//speedtest
@@ -248,7 +284,6 @@ public class MainActivity extends MyActivity {
 				});
 			}catch(Exception E){}
 			break;
-	}
-		
-	}
+	}*/
 }
+
