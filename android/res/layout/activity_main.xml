@@ -85,9 +85,8 @@
 			android:id="@+id/NameText"
 			android:layout_width="fill_parent"
 			android:layout_height="wrap_content"
-			android:ems="10">
-
-		<requestFocus/>
+			android:ems="10"
+			android:inputType="text">
 	</EditText>
 
 	<RelativeLayout
@@ -101,7 +100,9 @@
 				android:onClick="openSocket"
 				android:text="@string/connect"
 				/>
-
+		<Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+				android:text="start"
+				android:onClick="startGame"/>
 
 	</RelativeLayout>
 

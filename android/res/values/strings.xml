@@ -13,5 +13,7 @@
     <string name="play">Play</string>
     <string name="stop">Stop</string>
     <string name="refresh_socket">Show Sock.</string>
+	<string name="bombTest">bombTest</string>
+	<string name="action_settings">Settings</string>
 
 </resources>

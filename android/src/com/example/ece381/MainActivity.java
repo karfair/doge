@@ -1,27 +1,19 @@
 package com.example.ece381;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.sql.Timestamp;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import android.content.Intent;
-import android.widget.Toast;
-import com.example.ece381.MyApplication.TcpData;
-import com.example.ece381.MyActivity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class MainActivity extends Activity {
 
@@ -75,6 +67,8 @@ public class MainActivity extends Activity {
 		}
 	}*/
 	private byte name_buff[];
+	MyApplication app;
+	EditText nameText;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -88,11 +82,13 @@ public class MainActivity extends Activity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		app = (MyApplication) getApplication();
 
 		/*EditText et = (EditText) findViewById(R.id.RecvdMessage);
 		et.setKeyListener(null);
 		et = (EditText) findViewById(R.id.error_message_box);
 		et.setKeyListener(null);
+
 */
 
 	}
@@ -106,19 +102,18 @@ public class MainActivity extends Activity {
 	// Route called when the user presses "connect"
 	
 	public void openSocket(View view) {
-		MyApplication app = (MyApplication) getApplication();
+
 
 		//If no name is inputted in the name field, the program will notify the user and will return.
-		EditText nameText = (EditText) findViewById(R.id.NameText);
+		nameText = (EditText) findViewById(R.id.NameText);
 		String name = nameText.getText().toString();
-		if(name == ""){
-			Toast t = Toast.makeText(this,"Enter a Name",Toast.LENGTH_LONG);
-			t.show();
+		if(name.contentEquals("")){
+			Toast.makeText(getApplicationContext(),"Enter a Name",Toast.LENGTH_LONG).show();
 			return;
 		}
 		//Copy name into a buffer
 		name_buff = new byte[name.length()+1];
-		name_buff[0]= 1;
+		name_buff[0]= 10;//datatype
 		System.arraycopy(name.getBytes(),0,name_buff,1,name.length());
 
 		// Make sure the socket is not already opened 
@@ -135,14 +130,18 @@ public class MainActivity extends Activity {
 		// and executes the code in it.
 		
 		new SocketConnect().execute((Void) null);
-
-
-		//New intent to start bombGame
-		Intent intent = new Intent();
+		
+		Intent intent = new Intent(this, bombGame.class);
+		intent.putExtra("playerName",name_buff);
 		startActivity(intent);
-
 	}
 
+	public void startGame(View view){
+		//New intent to start bombGame
+		Intent intent = new Intent(this, bombGame.class);
+		intent.putExtra("playerName",name_buff);
+		startActivity(intent);
+	}
 	//  Called when the user wants to send a message
 	
 	/*public void sendMessage(View view) {

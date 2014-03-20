@@ -1,8 +1,7 @@
 package com.example.ece381;
 
-import com.example.ece381.MyApplication.TcpData;
-
 import android.app.Activity;
+import com.example.ece381.MyApplication.TcpData;
 
 public abstract class MyActivity extends Activity {
 	public abstract void handlesTCPData(TcpData d);
