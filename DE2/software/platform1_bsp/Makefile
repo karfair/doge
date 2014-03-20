@@ -101,7 +101,7 @@ ACDS_VERSION := 12.0sp2
 # BUILD_NUMBER: 263
 
 SETTINGS_FILE := settings.bsp
-SOPC_FILE := C:/Users/Phil/Desktop/audio_redo/nios_system.sopcinfo
+SOPC_FILE := ../../nios_system.sopcinfo
 
 #-------------------------------------------------------------------------------
 #                             TOOL & COMMAND DEFINITIONS
@@ -138,7 +138,7 @@ BSP_CFLAGS_DEBUG = -g
 # compiler optimization can remove variables and produce non-sequential 
 # execution of code while debugging. This setting defines the value of 
 # BSP_CFLAGS_OPTIMIZATION in Makefile. 
-BSP_CFLAGS_OPTIMIZATION = -O3
+BSP_CFLAGS_OPTIMIZATION = -O0
 
 # C/C++ compiler warning level. "-Wall" is commonly used.This setting defines 
 # the value of BSP_CFLAGS_WARNINGS in Makefile. 

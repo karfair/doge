@@ -87,11 +87,11 @@ ACDS_VERSION := 12.0sp2
 
 # Quartus Generated JDI File. Required for resolving node instance ID's with 
 # design component names. 
-JDI_FILE := C:/Users/Phil/Desktop/audio_redo/lights.jdi
+JDI_FILE := $(ABS_BSP_ROOT_DIR)/../../lights.jdi
 
 # Qsys--generated SOPCINFO file. Required for resolving node instance ID's with 
 # design component names. 
-SOPCINFO_FILE := C:/Users/Phil/Desktop/audio_redo/nios_system.sopcinfo
+SOPCINFO_FILE := $(ABS_BSP_ROOT_DIR)/../../nios_system.sopcinfo
 
 # Big-Endian operation. 
 # setting BIG_ENDIAN is false

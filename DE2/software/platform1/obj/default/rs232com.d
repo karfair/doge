@@ -10,7 +10,7 @@ obj/default/rs232com.o: rs232com.c \
   ../platform1_bsp//HAL/inc/priv/alt_legacy_irq.h \
   ../platform1_bsp/system.h ../platform1_bsp//HAL/inc/nios2.h \
   ../platform1_bsp//HAL/inc/sys/alt_irq.h ../platform1_bsp//HAL/inc/io.h \
-  ../platform1_bsp//HAL/inc/alt_types.h rs232com.h bomb.h
+  ../platform1_bsp//HAL/inc/alt_types.h rs232com.h bomb.h tightRopeGame.h
 
 ../platform1_bsp//drivers/inc/altera_up_avalon_rs232.h:
 
@@ -47,3 +47,5 @@ obj/default/rs232com.o: rs232com.c \
 rs232com.h:
 
 bomb.h:
+
+tightRopeGame.h:
