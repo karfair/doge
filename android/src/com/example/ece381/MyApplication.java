@@ -1,13 +1,12 @@
 package com.example.ece381;
 
+import android.app.Application;
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-
-import android.app.Application;
-import android.util.Log;
-import android.widget.EditText;
 
 public class MyApplication extends Application {
 	///////////////////////////
