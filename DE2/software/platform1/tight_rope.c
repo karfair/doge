@@ -1,3 +1,14 @@
+//to do list
+// background
+// winning/losing screen(sagent)
+// timer for game
+// image for game
+// interrupt????
+// android comm
+// drawing stuff code finalization?
+// menu connection
+
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,6 +21,8 @@ int left = 315;
 int axis[4];
 int player_fall[4];
 int ANDRIOD_INPUT; ///????
+int wind;
+
 
 object object;
 
@@ -83,7 +96,7 @@ int main()
 				switch(axis[num])
 				{
 				case 45:
-					draw_object(pixel_buffer, object, 45,s num);
+					draw_object(pixel_buffer, object, 45, num);
 				case 50:
 					draw_object(pixel_buffer, object, 50, num);
 				case 55:
@@ -126,9 +139,9 @@ int main()
 			}
 
 				int i;
+				int k = 0;
 			for(i = 0; i < 4 ; i++)// if player fall
 			{
-				int k = 0;
 				if(player_fall[i] == 1)
 				{
 				//draw ending screen;
@@ -137,10 +150,12 @@ int main()
 				//end andriod como for player i
 				k++;
 				}
-				if(k == 4)
+				if(k == 3)
 				{
 					// end game
-					// go back to menu
+					// show victory screen for player who didnt lose
+					// option to go back to menu
+					//need menu code stuff
 				}
 			}
 
@@ -159,20 +174,20 @@ int acc(int axis)
 	else
 		return axis;
 }
-/*
-int wind(int axis); //wind pushes player one way or another,
+
+void wind(int i , int dir) //wind pushes player one way or another,
 {
-	if()// some random fact that affects the way wind pushes
+	if(dir == 1)// some random fact that affects the way wind pushes
 	{
-		return axis - 10;
+		 axis[i] - 10;
 	}
 	else
 	{
-		return axis + 10;
+		 axis[i] + 10;
 	}
 
 }
-*/
+
 
 void cal_fall(int axis, int i) // check if the angle of over a limit, if it is ends the game
 {
@@ -190,6 +205,8 @@ void handle_timer_interrupts(){ //Interrupt for when hardware timer counts to ze
 
 	//update the info, checks
 	//axis[4] = ANDRIOD_INPUT[4];
+
+
 	int i;
 	for(i = 0; i< 4; i++)
 	{
@@ -198,8 +215,15 @@ void handle_timer_interrupts(){ //Interrupt for when hardware timer counts to ze
 		else if(axis[i] < LSL && axis[i] > mid)
 			axis[i] +=5;
 
+		if(wind == 5000)
+			wind(i,1);
+		else if(wind == 9999)
+		{
+			wind(i,0);
+			wind = 0;
+		}
 		//axis[i] = wind(axis[i]);
-		axis[i] =acc(axis[i]);
+		axis[i] = acc(axis[i]);
 		cal_fall(axis[i], i);
 
 	}
