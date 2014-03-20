@@ -26,9 +26,11 @@ int wind;
 
 object object;
 
+
+
 int main()
 {
-	/*
+
 	//buffer init stuff
 		pixel_buffer = alt_up_pixel_buffer_dma_open_dev("/dev/pixel_buffer_dma");
 
@@ -60,8 +62,6 @@ int main()
 		IOWR_16DIRECT(TIMER_0_BASE, 4, 0x5); //start timer
 		printf("past interrupt");
 
-		*/
-
 		//load bitmap files
 
 			bmp* 45 = read_bmp("45.bmp");
@@ -82,8 +82,25 @@ int main()
 			bmp* 125 = read_bmp("125.bmp");
 			bmp* 130 = read_bmp("130.bmp");
 			bmp* 135 = read_bmp("135.bmp");
+
+			object.x[0] = 10;
+			object.x[1] = 90;
+			object.x[2] = 170;
+			object.x[3] = 250;
+
+			object.y[0] = 120;
+			object.y[1] = 120;
+			object.y[2] = 120;
+			object.y[3] = 120;
+
+			object.length[0]= 80;
+			object.length[1]= 80;
+			object.length[2]= 80;
+			object.length[3]= 80;
 		while(1) //superloop
 		{
+			//menu should point to here to start the game
+			//game start grahics?
 			// need to find player and background
 			// position is updated by interrupt
 			//need to fine bmp for game
@@ -155,7 +172,7 @@ int main()
 					// end game
 					// show victory screen for player who didnt lose
 					// option to go back to menu
-					//need menu code stuff
+					break;
 				}
 			}
 
@@ -232,8 +249,8 @@ void handle_timer_interrupts(){ //Interrupt for when hardware timer counts to ze
 
 
 
-	//IOWR_16DIRECT(TIMER_0_BASE,0,0); //needed to show that interrupt finished executing
-	//IOWR_16DIRECT(TIMER_0_BASE,4,0x5); //restarts the hardware timer before exiting the isr
+	IOWR_16DIRECT(TIMER_0_BASE,0,0); //needed to show that interrupt finished executing
+	IOWR_16DIRECT(TIMER_0_BASE,4,0x5); //restarts the hardware timer before exiting the isr
 	return;
 }
 
