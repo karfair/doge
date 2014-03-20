@@ -1,13 +1,12 @@
 package com.example.ece381;
 
+import android.app.Application;
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-
-import android.app.Application;
-import android.util.Log;
-import android.widget.EditText;
 
 public class MyApplication extends Application {
 	///////////////////////////
@@ -19,6 +18,9 @@ public class MyApplication extends Application {
 	MyActivity currentActivity;
 	//TextView currentTextView;
 	
+	
+	//name data
+	TcpData nameData = new TcpData();
 	
 	//lock for currentActivity
 	Object lock = new Object();
@@ -43,6 +45,7 @@ public class MyApplication extends Application {
 		}
 		
 		byte buffer[] = new byte[d.data.length+1];
+		Log.i("COMM","dataType:" + String.valueOf(d.dataType) + "length" + String.valueOf(d.data.length));
 		buffer[0] = d.dataType;
 		System.arraycopy(d.data, 0, buffer, 1, d.data.length);
 		
@@ -50,12 +53,13 @@ public class MyApplication extends Application {
 		try {
 			out = sock.getOutputStream();
 			out.write(buffer, 0, d.data.length+1);
+			Log.i("COMM", "sendData():sent");
 
 		} catch (IOException e) {
 			e.printStackTrace();
 			Log.i("COMM", "sendData() error");
 		}
-		
+		Log.i("COMM", "returning");
 		return true;
 	}
 	

@@ -142,7 +142,8 @@ ACDS_VERSION := 12.0sp2
 ELF := platform1.elf
 
 # Paths to C, C++, and assembly source files.
-C_SRCS := rs232com.c
+C_SRCS += rs232com.c
+C_SRCS += bomb.c
 CXX_SRCS :=
 ASM_SRCS :=
 

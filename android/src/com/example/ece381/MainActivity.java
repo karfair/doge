@@ -1,31 +1,27 @@
 package com.example.ece381;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.sql.Timestamp;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import com.example.ece381.MyApplication.TcpData;
-import com.example.ece381.MyActivity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends MyActivity {
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+import com.example.ece381.MyApplication.TcpData;
+
+public class MainActivity extends Activity {
 
 	//stuff I wrote
 	//speed test and latency test
-	public void speedTest(View view){
+	/*public void speedTest(View view){
 		
 		final int BYTES_TO_SEND = 30;
 		final int ITERATIONS = 200;
@@ -59,7 +55,7 @@ public class MainActivity extends MyActivity {
 				latE = System.nanoTime();
 				Log.i("MainActivity", "latency is: " + String.valueOf((latE-latS)/1000000) + "mS" + " IT: " + String.valueOf(i));
 				//is this an ack????
-				assert(buf[0] == 0);
+				//assert(buf[0] == 0);
 			}
 			
 			long endTime = System.nanoTime();
@@ -71,8 +67,11 @@ public class MainActivity extends MyActivity {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
+	}*/
+
+	MyApplication app;
+	EditText nameText;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		
@@ -85,12 +84,14 @@ public class MainActivity extends MyActivity {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		app = (MyApplication) getApplication();
 
-		EditText et = (EditText) findViewById(R.id.RecvdMessage);
+		/*EditText et = (EditText) findViewById(R.id.RecvdMessage);
 		et.setKeyListener(null);
 		et = (EditText) findViewById(R.id.error_message_box);
 		et.setKeyListener(null);
 
+*/
 
 	}
 
@@ -103,14 +104,25 @@ public class MainActivity extends MyActivity {
 	// Route called when the user presses "connect"
 	
 	public void openSocket(View view) {
-		MyApplication app = (MyApplication) getApplication();
-		TextView msgbox = (TextView) findViewById(R.id.error_message_box);
+
+
+		//If no name is inputted in the name field, the program will notify the user and will return.
+		nameText = (EditText) findViewById(R.id.NameText);
+		String name = nameText.getText().toString();
+		if(name.contentEquals("")){
+			Toast.makeText(getApplicationContext(),"Enter a Name",Toast.LENGTH_LONG).show();
+			return;
+		}
+		//Copy name into a buffer
+		app.nameData.data = name.getBytes();
+		app.nameData.dataType = 10;
 
 		// Make sure the socket is not already opened 
-		app.ack = true;
+		//app.ack = true;
 		
 		if (app.sock != null && app.sock.isConnected() && !app.sock.isClosed()) {
-			msgbox.setText("Socket already open");
+			Toast t = Toast.makeText(this,"Socket is already open",Toast.LENGTH_LONG);
+			t.show();
 			return;
 		}
 		
@@ -119,27 +131,18 @@ public class MainActivity extends MyActivity {
 		// and executes the code in it.
 		
 		new SocketConnect().execute((Void) null);
+		
+		Intent intent = new Intent(this, bombGame.class);
+		intent.putExtra("playerName",app.nameData.data);
+		startActivity(intent);
 	}
 
-	//  Called when the user wants to send a message
-	
-	public void sendMessage(View view) {
-		
-		MyApplication app = (MyApplication) getApplication();
-		
-		// Get the message from the box
-		EditText et = (EditText) findViewById(R.id.MessageText);
-		String msg = et.getText().toString();
-
-		// Create an array of bytes.  First byte will be the
-		// message length, and the next ones will be the message
-		TcpData d = new TcpData();
-		d.data = msg.getBytes();
-		d.dataType = 1;
-		
-		app.sendData(d);
-	}
-
+//	public void startGame(View view){
+//		//New intent to start bombGame
+//		Intent intent = new Intent(this, bombGame.class);
+//		intent.putExtra("playerName",name_buff);
+//		startActivity(intent);
+//	}
 
 
 	// Construct an IP address from the four boxes
@@ -180,7 +183,7 @@ public class MainActivity extends MyActivity {
 
 		// The main parcel of work for this thread.  Opens a socket
 		// to connect to the specified IP.
-		
+
 		protected Socket doInBackground(Void... voids) {
 			Socket s = null;
 			String ip = getConnectToIP();
@@ -201,14 +204,30 @@ public class MainActivity extends MyActivity {
 		// the socket in this app's persistent storage
 		
 		protected void onPostExecute(Socket s) {
-			MyApplication myApp = (MyApplication) MainActivity.this
-					.getApplication();
-			myApp.sock = s;
+			MyApplication app = (MyApplication) MainActivity.this.getApplication();
+			app.sock = s;
+			app.sendData(app.nameData);
+			
+//			app.sock = s;
+//
+//			OutputStream out;
+//			try{
+//				out = app.sock.getOutputStream();
+//				try{
+//					app.ack= false;
+//					out.write(name_buff,0,name_buff.length);
+//
+//				}catch (IOException e){
+//					e.printStackTrace();
+//				}
+//			}catch (IOException e){
+//				e.printStackTrace();
+//			}
 		}
 	}
 
 	
-	public void handlesTCPData(TcpData d) {
+	/*public void handlesTCPData(TcpData d) {
 		switch(d.dataType){
 		case 0:
 			//speedtest
@@ -230,12 +249,8 @@ public class MainActivity extends MyActivity {
 				});
 			}catch(Exception E){}
 			break;
-		}
-		
-	}
 
-	@Override
-	public void handlesAck() {
-		// do nothing
-	}
+	}*/
+
 }
+

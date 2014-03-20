@@ -5,9 +5,17 @@
 #include "io.h"
 
 #include "rs232com.h"
+#include "bomb.h"
 
 #define BUFFER_SIZE 1024 //sending buffer
 #define TIMER_PERIOD 200000 //200k ticks -> 4mS
+
+//USER DEFINED
+
+
+
+
+
 
 //DO NOT EXTERN OR MODIFY
 ////////////////////////////
@@ -73,12 +81,17 @@ void uart_isr() {
 
 		//TODO: Modify stuff here to do different things for different data type
 		switch(dataType){
-			case 0:
-				//speed test mode, do nothing
-				break;
-			case 1:
-				send_data(id, dataType, size, buffer);
-				break;
+		case 0:
+			//speed test mode, do nothing
+			break;
+		case 1:
+			send_data(id, dataType, size, buffer);
+			break;
+		case 10:
+			if( set_name_i != 4) {
+				setName(id, size, buffer);
+			}
+			break;
 		}
 	}
 
@@ -235,16 +248,10 @@ int main()
 {
 	uart_init();
 	printf("uart init\n");
-	int i = 0;
-	while(1){
-		i++;
-		if(i % 5000000 == 0){
-			//printf("content:");
-			int j;
-			//for(j=0;j<50;j++)
-			//	printf("%c",buffer[j]);
-			//printf("\n id: %i size: %i datatype: %i start: %i end: %i\n", id,size,dataType,Start,End);
-		}
-	}
+
+	while(set_name_i != 1);
+
+	sendNameAll();
+
 	return 0;
 }
