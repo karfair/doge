@@ -88,7 +88,9 @@ void uart_isr() {
 			send_data(id, dataType, size, buffer);
 			break;
 		case 10:
-			setName(id, size, buffer);
+			if( set_name_i != 4) {
+				setName(id, size, buffer);
+			}
 			break;
 		}
 	}
@@ -247,7 +249,7 @@ int main()
 	uart_init();
 	printf("uart init\n");
 
-	while(set_name_i != 4);
+	while(set_name_i != 1);
 
 	sendNameAll();
 

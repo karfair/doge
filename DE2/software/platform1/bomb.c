@@ -9,7 +9,7 @@
 #include "rs232com.h"
 
 players p;
-int set_name_i = 0;
+volatile int set_name_i = 0;
 
 void setName(unsigned char id, unsigned char size, unsigned char *name){
 	int i;
@@ -44,11 +44,13 @@ void setName(unsigned char id, unsigned char size, unsigned char *name){
 		break;
 	}
 	set_name_i++;
+	printf("i: %i\n", set_name_i);
 }
 
 void sendNameAll(){
+	printf("sending names\n");
 	send_data(SEND_TO_ALL,12,p.size0,p.p0name);
-	send_data(SEND_TO_ALL,12,p.size1,p.p1name);
-	send_data(SEND_TO_ALL,12,p.size2,p.p2name);
-	send_data(SEND_TO_ALL,12,p.size3,p.p3name);
+	//send_data(SEND_TO_ALL,12,p.size1,p.p1name);
+	//send_data(SEND_TO_ALL,12,p.size2,p.p2name);
+	//send_data(SEND_TO_ALL,12,p.size3,p.p3name);
 }

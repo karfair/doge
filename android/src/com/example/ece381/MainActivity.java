@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import com.example.ece381.MyApplication.TcpData;
+
 public class MainActivity extends Activity {
 
 	//stuff I wrote
@@ -66,7 +68,7 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 	}*/
-	private byte name_buff[];
+
 	MyApplication app;
 	EditText nameText;
 
@@ -112,12 +114,11 @@ public class MainActivity extends Activity {
 			return;
 		}
 		//Copy name into a buffer
-		name_buff = new byte[name.length()+1];
-		name_buff[0]= 10;//datatype
-		System.arraycopy(name.getBytes(),0,name_buff,1,name.length());
+		app.nameData.data = name.getBytes();
+		app.nameData.dataType = 10;
 
 		// Make sure the socket is not already opened 
-		app.ack = true;
+		//app.ack = true;
 		
 		if (app.sock != null && app.sock.isConnected() && !app.sock.isClosed()) {
 			Toast t = Toast.makeText(this,"Socket is already open",Toast.LENGTH_LONG);
@@ -132,16 +133,16 @@ public class MainActivity extends Activity {
 		new SocketConnect().execute((Void) null);
 		
 		Intent intent = new Intent(this, bombGame.class);
-		intent.putExtra("playerName",name_buff);
+		intent.putExtra("playerName",app.nameData.data);
 		startActivity(intent);
 	}
 
-	public void startGame(View view){
-		//New intent to start bombGame
-		Intent intent = new Intent(this, bombGame.class);
-		intent.putExtra("playerName",name_buff);
-		startActivity(intent);
-	}
+//	public void startGame(View view){
+//		//New intent to start bombGame
+//		Intent intent = new Intent(this, bombGame.class);
+//		intent.putExtra("playerName",name_buff);
+//		startActivity(intent);
+//	}
 
 
 	// Construct an IP address from the four boxes
@@ -205,20 +206,23 @@ public class MainActivity extends Activity {
 		protected void onPostExecute(Socket s) {
 			MyApplication app = (MyApplication) MainActivity.this.getApplication();
 			app.sock = s;
-
-			OutputStream out;
-			try{
-				out = app.sock.getOutputStream();
-				try{
-					app.ack= false;
-					out.write(name_buff,0,name_buff.length);
-
-				}catch (IOException e){
-					e.printStackTrace();
-				}
-			}catch (IOException e){
-				e.printStackTrace();
-			}
+			app.sendData(app.nameData);
+			
+//			app.sock = s;
+//
+//			OutputStream out;
+//			try{
+//				out = app.sock.getOutputStream();
+//				try{
+//					app.ack= false;
+//					out.write(name_buff,0,name_buff.length);
+//
+//				}catch (IOException e){
+//					e.printStackTrace();
+//				}
+//			}catch (IOException e){
+//				e.printStackTrace();
+//			}
 		}
 	}
 

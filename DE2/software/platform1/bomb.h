@@ -19,7 +19,7 @@ typedef struct{
 } players;
 
 extern players p;
-extern int set_name_i;
+extern volatile int set_name_i;
 
 void setName(unsigned char id, unsigned char size, unsigned char *name);
 void sendNameAll();
